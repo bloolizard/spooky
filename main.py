@@ -63,6 +63,15 @@ vectorizer = CountVectorizer()
 sentence_transform = vectorizer.fit_transform(sentence_filtered)
 sentence_transform
 
+sentences = train_data_df.text
+sentence = sentences[0]
+for word in sentence:
+    words = sentence.split(" ")
+    print(word)
+
+for sentence in sentences:
+    print sentence
+
 def sentenceToVec(sentence):
     vec = 0
     return vec
@@ -100,20 +109,21 @@ criterion = nn.NLLLoss()
 num_epochs = 2
 
 for epoch in range(num_epochs):
-    sentences = Variable(sentence)
-    labels = Variable(labels)
+    for sentence in len(sentences):
+        sentences = Variable(sentence)
+        labels = Variable(labels)
 
-    optimizer.zero_grad()
+        optimizer.zero_grad()
 
-    outputs = rnn(sentences)
+        outputs = rnn(sentences)
 
-    loss = criterion(outputs)
+        loss = criterion(outputs)
 
-    loss.backward()
+        loss.backward()
 
-    optimizer.step()
+        optimizer.step()
 
-    iter += 1
-    if iter % 100 == 0:
-        print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
+        iter += 1
+        if iter % 100 == 0:
+            print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
 

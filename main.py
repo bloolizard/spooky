@@ -88,7 +88,32 @@ class RNN(nn.Module):
     def initHidden(self):
         return Variable(torch.zeros(1, self.hidden_size))
 
+n_hidden = 128
+n_input = len(vocab)
+rnn = RNN(n_input, n_hidden, n_categories)
 
+learning_rate = 0.1
+optimizer = torch.optim.SGD(rnn.parameters(), lr=learning_rate)
 
+criterion = nn.NLLLoss()
 
+num_epochs = 2
+
+for epoch in range(num_epochs):
+    sentences = Variable(sentence)
+    labels = Variable(labels)
+
+    optimizer.zero_grad()
+
+    outputs = rnn(sentences)
+
+    loss = criterion(outputs)
+
+    loss.backward()
+
+    optimizer.step()
+
+    iter += 1
+    if iter % 100 == 0:
+        print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
 

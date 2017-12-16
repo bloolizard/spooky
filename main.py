@@ -17,7 +17,6 @@ path = "~/Developer/spooky/data/"
 train_path = path + "train.csv"
 test_path = path + "test.csv"
 
-from __future__ import division
 
 from sklearn.feature_extraction.text import CountVectorizer
 vectorizer = CountVectorizer()

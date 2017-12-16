@@ -20,6 +20,10 @@ test_path = path + "test.csv"
 from __future__ import division
 
 from sklearn.feature_extraction.text import CountVectorizer
+vectorizer = CountVectorizer()
+vectorizer.fit_transform(train_data_df.text)
+
+
 
 # Train Data
 # id, text, author
@@ -31,6 +35,29 @@ test_data_df = pd.read_csv(test_path)
 
 # Sample Submission
 # id, EAP, HPL, MWS
+
+# encode x and y
+vectorizer = CountVectorizer()
+train_data_features = vectorizer.fit_transform(train_data_df.text)
+train_data_features = train_data_features.toarray()
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+enc_y = le.fit_transform(train_data_df.author)
+
+# from sklearn.preprocessing import OneHotEncoder
+# enc = OneHotEncoder()
+# enc.fit(enc_y)
+
+from sklearn.preprocessing import LabelBinarizer
+
+encoder = LabelBinarizer()
+transfomed_label = encoder.fit_transform(train_data_df.author)
+print(transfomed_label)
+
+labels = train_data_df.author
+
+vocab = vectorizer.get_feature_names()
 
 test_data_df
 
@@ -99,31 +126,79 @@ class RNN(nn.Module):
 
 n_hidden = 128
 n_input = len(vocab)
+n_categories = 3
 rnn = RNN(n_input, n_hidden, n_categories)
 
 learning_rate = 0.1
-optimizer = torch.optim.SGD(rnn.parameters(), lr=learning_rate)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
-criterion = nn.NLLLoss()
+
+criterion = nn.CrossEntropyLoss()
 
 num_epochs = 2
 
-for epoch in range(num_epochs):
-    for sentence in len(sentences):
-        sentences = Variable(sentence)
-        labels = Variable(labels)
+for i in range(len(train_data_features)):
+    x = train_data_features[i].astype(float)
+    torch_x = torch.from_numpy(x).float()
+    sentence = Variable(torch_x)
 
-        optimizer.zero_grad()
+    label = Variable(torch.from_numpy(enc_y.reshape(-1, 1)[i]))
 
-        outputs = rnn(sentences)
+    optimizer.zero_grad()
 
-        loss = criterion(outputs)
+    outputs = model(sentence).view(1,3)
 
-        loss.backward()
+    loss = criterion(outputs, label)
 
-        optimizer.step()
+    loss.backward()
 
-        iter += 1
-        if iter % 100 == 0:
-            print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
+    optimizer.step()
 
+    iter += 1
+    print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
+
+
+
+
+class FeedforwardNeuralNetwork(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes):
+        super(FeedforwardNeuralNetwork, self).__init__()
+        # Linear Function
+        self.fc1 = nn.Linear(input_size, hidden_size)
+
+        # Non-linearity
+        self.sigmoid = nn.Sigmoid()
+
+        # Linear function (readout)
+        self.fc2 = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        # Linear function
+        out = self.fc1(x)
+        # Non-linearity
+        out = self.sigmoid(out)
+        # Linear function (readout)
+        out = self.fc2(out)
+
+        return out
+
+model = FeedforwardNeuralNetwork(25068, 1000, 3)
+
+
+print(len(list(model.parameters())))
+print(list(model.parameters())[0].size())
+
+# Convolution 1 Bias: 16 Kernels
+print(list(model.parameters())[1].size())
+
+# Convolution 2: 32 Kernels with depth = 16
+print(list(model.parameters())[2].size())
+
+# Convolution 2 Bias: 32 Kernels with depth = 16
+print(list(model.parameters())[3].size())
+
+# Fully Connected Layer 1
+print(list(model.parameters())[4].size())
+
+# Fully Connected Layer Bias
+print(list(model.parameters())[5].size())

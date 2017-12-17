@@ -35,6 +35,11 @@ train_data_df = pd.read_csv(train_path)
 # id, text
 test_data_df = pd.read_csv(test_path)
 
+from sklearn.preprocessing import LabelBinarizer
+encoder = LabelBinarizer()
+transfomed_label = encoder.fit_transform(train_data_df.author)
+print(transfomed_label)
+
 # Create Dataset Class
 class SpookyTrainDataset(Dataset):
     def __init__(self, csv_file):
@@ -44,11 +49,13 @@ class SpookyTrainDataset(Dataset):
         vectorizer.fit(self.spooky_frame.text)
         vectorize_text = vectorizer.fit_transform(self.spooky_frame.text)
         self.vocab = vectorizer.get_feature_names()
-        print(self.vocab)
         self.vectorize_text = vectorize_text.toarray()
 
         le = LabelEncoder()
         self.enc_author = le.fit_transform(self.spooky_frame.author)
+
+        binary_encoder = LabelBinarizer()
+        self.binary_label = binary_encoder.fit_transform(self.spooky_frame.author)
 
     def __len__(self):
         return len(self.spooky_frame)
@@ -62,15 +69,12 @@ class SpookyTrainDataset(Dataset):
         sample['author'] = author
         sample['text_vector'] = self.vectorize_text[idx]
         sample['text_tensor'] = text_tensor
-        sample['enc_author'] = self.enc_author[idx]
+        sample['enc_author'] = torch.from_numpy(self.enc_author.reshape(-1,1)[idx])
+        sample['binary_label'] = torch.from_numpy(self.binary_label[idx])
         return sample
 
 spooky_train_set = SpookyTrainDataset(train_path)
 spooky_train_set[0]['text_tensor'].shape
-
-for i in range(len(spooky_train_set)):
-    print(spooky_train_set[i])
-
 
 class FeedForwardNN(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
@@ -94,5 +98,39 @@ learning_rate = 0.1
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 criterion = nn.CrossEntropyLoss()
 
-for i in range(len(spooky_train_set)):
-    print(spooky_train_set[i])
+iter = 0
+for i in range(10):
+    sample = spooky_train_set[i]
+    sentence = Variable(sample['text_tensor'])
+    label = Variable(sample['enc_author'])
+
+    optimizer.zero_grad()
+
+    outputs = model(sentence).view(1,3)
+    print(outputs.size())
+    print(label.size())
+    loss = criterion(outputs, label)
+
+    loss.backward()
+    optimizer.step()
+    iter += 1
+    print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
+
+spookyloader = DataLoader(spooky_train_set, batch_size=4, shuffle=True, num_workers=4)
+
+for i, sample in enumerate(spookyloader):
+    sample = spooky_train_set[i]
+    sentence = Variable(sample['text_tensor'])
+    label = Variable(sample['enc_author'])
+
+    optimizer.zero_grad()
+
+    outputs = model(sentence).view(1,3)
+    print(outputs.size())
+    print(label.size())
+    loss = criterion(outputs, label)
+
+    loss.backward()
+    optimizer.step()
+    iter += 1
+    print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))

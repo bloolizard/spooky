@@ -116,7 +116,11 @@ for i in range(10):
     iter += 1
     print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
 
+# todo: get dataset to work with dataloader
 spookyloader = DataLoader(spooky_train_set, batch_size=4, shuffle=True, num_workers=4)
+
+for i, sample in enumerate(spookyloader):
+    print(sample)
 
 for i, sample in enumerate(spookyloader):
     sample = spooky_train_set[i]

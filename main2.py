@@ -42,7 +42,7 @@ print(transfomed_label)
 
 # Create Dataset Class
 class SpookyTrainDataset(Dataset):
-    def __init__(self, csv_file):
+    def __init__(self, csv_file, transform=None):
         self.spooky_frame = pd.read_csv(csv_file)
 
         vectorizer = CountVectorizer()
@@ -56,6 +56,7 @@ class SpookyTrainDataset(Dataset):
 
         binary_encoder = LabelBinarizer()
         self.binary_label = binary_encoder.fit_transform(self.spooky_frame.author)
+        self.trasnform = transform
 
     def __len__(self):
         return len(self.spooky_frame)
@@ -73,7 +74,11 @@ class SpookyTrainDataset(Dataset):
         sample['binary_label'] = torch.from_numpy(self.binary_label[idx])
         return sample
 
-spooky_train_set = SpookyTrainDataset(train_path)
+class ToTensor(object):
+    def __call__(self,sample):
+        return {}
+
+spooky_train_set = SpookyTrainDataset(train_path, transform)
 spooky_train_set[0]['text_tensor'].shape
 
 class FeedForwardNN(nn.Module):
@@ -117,10 +122,13 @@ for i in range(10):
     print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
 
 # todo: get dataset to work with dataloader
-spookyloader = DataLoader(spooky_train_set, batch_size=4, shuffle=True, num_workers=4)
+spookyloader = DataLoader(spooky_train_set, batch_size=4, num_workers=4)
 
 for i, sample in enumerate(spookyloader):
     print(sample)
+
+for i in enumerate(spookyloader):
+    print(i)
 
 for i, sample in enumerate(spookyloader):
     sample = spooky_train_set[i]

@@ -64,6 +64,15 @@ def train(category_tensor, line_tensor):
 
     return output, loss.data[0]
 
+def validate(category_tensor, line_tensor):
+    hidden = rnn.initHidden()
+    rnn.zero_grad()
+    for i in range(line_tensor.size()[0]):
+        output, hidden = rnn(line_tensor[i], hidden)
+
+    loss = criterion(output, category_tensor[i])
+    return output, loss.data[0]
+
 # Keep track of losses for plotting
 current_loss = 0
 all_losses = []
@@ -81,13 +90,14 @@ xtrain_glove, xvalid_glove, ytrain, yvalid = preprocess()
 
 for epoch in range(1, n_epochs + 1):
     output, loss = train(ytrain, xtrain_glove)
+    valid_output, valid_loss = validate(ytrain, xtrain_glove)
     current_loss += loss
 
     # Print epoch number, loss, name and guess
     if epoch % print_every == 0:
         # guess, guess_i = categoryFromOutput(output)
         # correct = '✓' if guess == category else '✗ (%s)' % category
-        print('%d %d%% (%s) %.4f' % (epoch, epoch / n_epochs * 100, timeSince(start), loss))
+        print('%d %d%% (%s) traning loss: %.4f validation loss: %.4f' % (epoch, epoch / n_epochs * 100, timeSince(start), loss, valid_loss))
 
     # Add current loss avg to list of losses
     if epoch % plot_every == 0:

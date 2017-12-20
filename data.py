@@ -80,5 +80,5 @@ def preprocess():
     xtrain_glove = [sent2vec(x) for x in tqdm(xtrain)]
     xvalid_glove = [sent2vec(x) for x in tqdm(xvalid)]
     xtrain_glove = Variable(torch.FloatTensor(np.array(xtrain_glove)))
-    xvalid_glove = np.array(xvalid_glove)
-    return xtrain_glove, xvalid_glove, Variable(torch.LongTensor(ytrain)), yvalid
+    xvalid_glove = Variable(torch.FloatTensor(np.array(xvalid_glove)))
+    return xtrain_glove, xvalid_glove, Variable(torch.LongTensor(ytrain)), Variable(torch.LongTensor(yvalid))

@@ -117,7 +117,26 @@ for i in range(10):
 # todo: need to turn this into probability
 outputs.data
 _, predicted = torch.max(outputs.data, 1)
+top3_prob, top3_label = torch.topk(outputs.data, 3)
 
+
+iter = 0
+for i in range(10):
+    sample = spooky_train_set[i]
+    sentence = Variable(sample['text_tensor'])
+    label = Variable(sample['enc_author'])
+
+    optimizer.zero_grad()
+
+    outputs = model(sentence).view(1,3)
+    print(outputs.size())
+    print(label.size())
+    loss = criterion(outputs, label)
+
+    loss.backward()
+    optimizer.step()
+    iter += 1
+    print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
 
 # Sample Submission
 # id, EAP, HPL, MWS
@@ -128,3 +147,46 @@ def create_output_csv():
     df.to_csv("output.csv", index=False)
 
 create_output_csv()
+
+probs = []
+for i in range(10):
+    sample = spooky_train_set[i]
+    sentence = Variable(sample['text_tensor'])
+    label = Variable(sample['enc_author'])
+
+    outputs = model(sentence).view(1,3)
+    probs.append(outputs.data[0].numpy())
+
+# Sample Submission
+# id, EAP, HPL, MWS
+def create_output_csv():
+    columns = ["id", "EAP", "HPL", "MWS"]
+    df = pd.DataFrame(columns=columns)
+    df.loc[1] = [1,95,2,3]
+    df.to_csv("output.csv", index=False)
+
+create_output_csv()
+
+columns = ["id", "EAP", "HPL", "MWS"]
+df = pd.DataFrame(columns=columns)
+df.append(probs)
+df.to_csv("output.csv", index=False)
+
+df.insert(0, 'id', train_data_df.id)
+
+# drop all values from pandas
+df = df.iloc[0:0]
+
+probs = []
+for i in range(10):
+    sample = spooky_train_set[i]
+    sentence = Variable(sample['text_tensor'])
+    label = Variable(sample['enc_author'])
+
+    outputs = model(sentence).view(1,3)
+    probs.append(outputs.data[0].numpy())
+
+for i in range(len(probs)):
+    df.loc[i] = [train_data_df.id[i], probs[i][0], probs[i][1], probs[i][2]]
+
+df

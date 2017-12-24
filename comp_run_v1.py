@@ -211,3 +211,7 @@ for i in range(len(probs)):
     df.loc[i] = [train_data_df.id[i], probs[i][0], probs[i][1], probs[i][2]]
 
 df
+
+
+torch.save(model, 'model.pth')
+model = torch.load('model.pth')

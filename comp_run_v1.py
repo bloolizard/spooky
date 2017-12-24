@@ -78,11 +78,13 @@ class FeedForwardNN(nn.Module):
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.sigmoid = nn.Sigmoid()
         self.fc2 = nn.Linear(hidden_size, num_classes)
+        self.softmax = nn.Softmax()
 
     def forward(self, x):
         out = self.fc1(x)
         out = self.sigmoid(out)
         out = self.fc2(out)
+        out = self.softmax(out)
         return out
 
 n_input = len(spooky_train_set.vocab)

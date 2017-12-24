@@ -138,6 +138,27 @@ for i in range(10):
     iter += 1
     print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
 
+
+iter = 0
+num_epochs = 2
+for epoch in range(num_epochs):
+    for i in range(len(spooky_train_set)):
+        sample = spooky_train_set[i]
+        sentence = Variable(sample['text_tensor'])
+        label = Variable(sample['enc_author'])
+
+        optimizer.zero_grad()
+
+        outputs = model(sentence).view(1,3)
+        print(outputs.size())
+        print(label.size())
+        loss = criterion(outputs, label)
+
+        loss.backward()
+        optimizer.step()
+        iter += 1
+        print('Iteration: {}, Loss: {}.'.format(iter, loss.data[0]))
+
 # Sample Submission
 # id, EAP, HPL, MWS
 def create_output_csv():

@@ -77,7 +77,7 @@ class BoWClf(nn.Module):
 model = BoWClf(num_categories, vocab_size)
 loss_function = nn.NLLLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
-num_epochs = 100
+num_epochs = 10000
 for epoch in tqdm(range(num_epochs)):
     for i, sent in enumerate(X_train):
         model.zero_grad()

@@ -27,6 +27,7 @@ train_path = path + "train.csv"
 test_path = path + "test.csv"
 
 train_data_df = pd.read_csv(train_path)
+test_data_df = pd.read_csv(test_path)
 le = LabelEncoder()
 y = le.fit_transform(train_data_df.author.values)
 
@@ -97,7 +98,7 @@ model = torch.load('model2.pth')
 # predicted csv
 columns = ["id", "EAP", "HPL", "MWS"]
 df = pd.DataFrame(columns=columns)
-for i, sent in tqdm(enumerate(train_data_df.text)):
+for i, sent in tqdm(enumerate(test_data_df.text)):
     bow_vec = Variable(make_bow_vector(sent, word_to_ix))
     outputs = model(bow_vec)
     _, predicted = torch.max(outputs.data, 1)
@@ -105,6 +106,6 @@ for i, sent in tqdm(enumerate(train_data_df.text)):
     eap_prob = softmax_probs.data.tolist()[0][0]
     hpl_prob = softmax_probs.data.tolist()[0][1]
     mws_prob = softmax_probs.data.tolist()[0][2]
-    df.loc[i] = [train_data_df.id[i], eap_prob, hpl_prob, mws_prob]
-df.to_csv("output3.csv", index=False)
+    df.loc[i] = [test_data_df.id[i], eap_prob, hpl_prob, mws_prob]
+df.to_csv("output5.csv", index=False)
 

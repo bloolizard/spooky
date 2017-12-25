@@ -59,7 +59,8 @@ def make_bow_vector(sentence, word_to_ix):
     vec = torch.zeros(len(word_to_ix))
     split_sent = sentence.split(" ")
     for word in split_sent:
-        vec[word_to_ix[word]] += 1
+        if word in word_to_ix:
+            vec[word_to_ix[word]] += 1
     return vec.view(1,-1)
 
 def make_label_vector(label):
@@ -89,5 +90,21 @@ for epoch in tqdm(range(num_epochs)):
         loss.backward()
         optimizer.step()
 
+torch.save(model, 'model2.pth')
+model = torch.load('model2.pth')
 
+# predict entire csv
+# predicted csv
+columns = ["id", "EAP", "HPL", "MWS"]
+df = pd.DataFrame(columns=columns)
+for i, sent in tqdm(enumerate(train_data_df.text)):
+    bow_vec = Variable(make_bow_vector(sent, word_to_ix))
+    outputs = model(bow_vec)
+    _, predicted = torch.max(outputs.data, 1)
+    softmax_probs = nn.Softmax()(Variable(outputs.data))
+    eap_prob = softmax_probs.data.tolist()[0][0]
+    hpl_prob = softmax_probs.data.tolist()[0][1]
+    mws_prob = softmax_probs.data.tolist()[0][2]
+    df.loc[i] = [train_data_df.id[i], eap_prob, hpl_prob, mws_prob]
+df.to_csv("output3.csv", index=False)
 
